@@ -11,9 +11,14 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libcurl4-openssl-dev \
     libpq-dev \
-    libz-dev
+    libz-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    libpcre3-dev
 
-RUN pecl install -of redis \
+RUN pecl channel-update pecl.php.net \
+    && pecl install -of redis \
     && docker-php-ext-enable redis \
     && pecl install -of memcached \
     && docker-php-ext-enable memcached \
@@ -21,14 +26,20 @@ RUN pecl install -of redis \
     && docker-php-ext-enable raphf \
     && pecl install -of propro \
     && docker-php-ext-enable propro \
-    && pecl install -of pecl_http \
+    && pecl install -of pecl_http-3.2.4 \
     && docker-php-ext-enable http \
-    && docker-php-ext-install pdo pdo_pgsql pgsql sockets
-
-RUN docker-php-ext-install mysqli pdo_mysql
-
-RUN pecl install -of ds \
+    && pecl install -of ds \
     && docker-php-ext-enable ds
+
+RUN docker-php-ext-install \
+        pdo \
+        pgsql \
+        pdo_pgsql \
+        mysqli \
+        pdo_mysql \
+        sockets \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd
 
 RUN wget https://getcomposer.org/composer-stable.phar \
     && mv /var/www/html/composer-stable.phar /usr/bin/composer \
